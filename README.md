@@ -1,4 +1,14 @@
-<<<<<<< HEAD
+---
+title: AssistOpsEnv
+emoji: 🚑
+colorFrom: blue
+colorTo: green
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
+
 # AssistOpsEnv: AI Environment for Community Emergency Assistance
 
 ## Overview

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # AssistOpsEnv: AI Environment for Community Emergency Assistance
 
 ## Overview

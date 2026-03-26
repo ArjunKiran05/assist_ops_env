@@ -2,11 +2,20 @@ from fastapi import FastAPI
 from env.environment import AssistOpsEnv
 from env.models import Action
 from env.grader import compute_score
+from fastapi.responses import RedirectResponse
 
 app = FastAPI()
 
 # Global environment instance
 env = AssistOpsEnv()
+
+
+# -----------------------------
+# Root Route
+# -----------------------------
+@app.get("/")
+def home():
+    return RedirectResponse(url="/docs")
 
 
 # -----------------------------

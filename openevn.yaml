@@ -1,0 +1,23 @@
+name: assist-ops-env
+description: AI environment for community emergency assistance task allocation
+version: 1.0.0
+
+entrypoint:
+  api: api.main:app
+
+tasks:
+  - name: easy
+    description: Simple matching with equal helpers and requests
+
+  - name: medium
+    description: Limited helpers, requires prioritization
+
+  - name: hard
+    description: Dynamic requests over time with limited resources
+
+endpoints:
+  reset: /reset
+  step: /step
+  state: /state
+  grader: /grader
+  tasks: /tasks

@@ -1,9 +1,7 @@
-name: assist-ops-env
-description: AI environment for community emergency assistance task allocation
+name: assist_ops_env
 version: 1.0.0
-
-entrypoint:
-  api: api.main:app
+description: Assist Ops environment for Scaler hackathon
+entrypoint: inference.py
 
 tasks:
   - name: easy

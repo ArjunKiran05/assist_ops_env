@@ -3,20 +3,7 @@ version: 1.0.0
 description: Assist Ops environment for Scaler hackathon
 entrypoint: inference.py
 
-tasks:
-  easy:
-    description: Simple matching with equal helpers and requests
-    grader: /grader
-
-  medium:
-    description: Limited helpers, requires prioritization
-    grader: /grader
-
-  hard:
-    description: Dynamic requests over time with limited resources
-    grader: /grader
-
 endpoints:
   reset: /reset
-  grader: /grader
   tasks: /tasks
+  grader: /grader

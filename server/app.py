@@ -9,25 +9,23 @@ def root():
 
 @app.get("/tasks")
 def tasks():
-    return {
-        "tasks": [
-            {
-                "name": "easy",
-                "description": "Simple matching with equal helpers and requests",
-                "grader": "/grader"
-            },
-            {
-                "name": "medium",
-                "description": "Limited helpers, requires prioritization",
-                "grader": "/grader"
-            },
-            {
-                "name": "hard",
-                "description": "Dynamic requests over time with limited resources",
-                "grader": "/grader"
-            }
-        ]
-    }
+    return [
+        {
+            "name": "easy",
+            "description": "Simple matching with equal helpers and requests",
+            "grader": "/grader"
+        },
+        {
+            "name": "medium",
+            "description": "Limited helpers, requires prioritization",
+            "grader": "/grader"
+        },
+        {
+            "name": "hard",
+            "description": "Dynamic requests over time with limited resources",
+            "grader": "/grader"
+        }
+    ]
 
 @app.post("/reset")
 def reset():

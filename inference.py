@@ -1,4 +1,6 @@
 import asyncio
+import os
+from openai import OpenAI
 from typing import List, Optional
 
 from env.environment import AssistOpsEnv
@@ -7,7 +9,10 @@ from env.models import Action
 
 TASK_NAME = "easy"
 BENCHMARK = "assist_ops"
-MODEL_NAME = "rule-based"
+API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
+MODEL_NAME = os.getenv("MODEL_NAME", "Qwen/Qwen2.5-72B-Instruct")
+HF_TOKEN = os.getenv("HF_TOKEN")
+LOCAL_IMAGE_NAME = os.getenv("LOCAL_IMAGE_NAME")
 MAX_STEPS = 10
 
 
@@ -33,25 +38,69 @@ def log_end(success: bool, steps: int, score: float, rewards: List[float]):
     )
 
 
-def choose_action(obs):
-    for req in obs.requests:
-        if not req.assigned and not req.resolved:
-            for helper in obs.helpers:
-                if not helper.busy and req.type in helper.skills:
-                    return Action(
-                        action_type="assign",
-                        helper_id=helper.id,
-                        request_id=req.id
-                    )
+def choose_action(obs, client):
+    prompt = f"""
+Requests:
+{[(r.id, r.type, r.severity, r.assigned, r.resolved) for r in obs.requests]}
 
-    return Action(
-        action_type="assign",
-        helper_id="H1",
-        request_id="R1"
-    )
+Helpers:
+{[(h.id, h.skills, h.busy) for h in obs.helpers]}
+
+Choose the best assignment.
+Respond ONLY in this format:
+HELPER_ID,REQUEST_ID
+Example:
+H1,R1
+"""
+
+    try:
+        response = client.chat.completions.create(
+            model=MODEL_NAME,
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are an assistant that assigns the best helper to the highest priority unresolved request."
+                },
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ]
+        )
+
+        text = response.choices[0].message.content.strip()
+        helper_id, request_id = [x.strip() for x in text.split(",")]
+
+        return Action(
+            action_type="assign",
+            helper_id=helper_id,
+            request_id=request_id
+        )
+
+    except Exception:
+        # fallback if model fails
+        for req in obs.requests:
+            if not req.assigned and not req.resolved:
+                for helper in obs.helpers:
+                    if not helper.busy and req.type in helper.skills:
+                        return Action(
+                            action_type="assign",
+                            helper_id=helper.id,
+                            request_id=req.id
+                        )
+
+        return Action(
+            action_type="assign",
+            helper_id="H1",
+            request_id="R1"
+        )
 
 
 async def main():
+    client = OpenAI(
+        base_url=API_BASE_URL,
+        api_key=HF_TOKEN
+    )
     env = AssistOpsEnv(seed=42)
 
     rewards = []
@@ -65,7 +114,7 @@ async def main():
         obs = env.reset(task=TASK_NAME)
 
         for step in range(1, MAX_STEPS + 1):
-            action = choose_action(obs)
+            action = choose_action(obs, client)
 
             obs, reward, done, info = env.step(action)
 

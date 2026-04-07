@@ -6,12 +6,15 @@ entrypoint: inference.py
 tasks:
   - name: easy
     description: Simple matching with equal helpers and requests
+    grader: grader.py:grade_easy
 
   - name: medium
     description: Limited helpers, requires prioritization
+    grader: grader.py:grade_medium
 
   - name: hard
     description: Dynamic requests over time with limited resources
+    grader: grader.py:grade_hard
 
 endpoints:
   reset: /reset

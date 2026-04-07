@@ -4,18 +4,19 @@ description: Assist Ops environment for Scaler hackathon
 entrypoint: inference.py
 
 tasks:
-  - name: easy
+  easy:
     description: Simple matching with equal helpers and requests
     grader: /grader
 
-  - name: medium
+  medium:
     description: Limited helpers, requires prioritization
     grader: /grader
 
-  - name: hard
+  hard:
     description: Dynamic requests over time with limited resources
     grader: /grader
 
 endpoints:
   reset: /reset
   grader: /grader
+  tasks: /tasks

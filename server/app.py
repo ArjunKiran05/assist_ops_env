@@ -7,6 +7,28 @@ app = FastAPI()
 def root():
     return {"message": "Assist Ops environment running"}
 
+@app.get("/tasks")
+def tasks():
+    return {
+        "tasks": [
+            {
+                "name": "easy",
+                "description": "Simple matching with equal helpers and requests",
+                "grader": "/grader"
+            },
+            {
+                "name": "medium",
+                "description": "Limited helpers, requires prioritization",
+                "grader": "/grader"
+            },
+            {
+                "name": "hard",
+                "description": "Dynamic requests over time with limited resources",
+                "grader": "/grader"
+            }
+        ]
+    }
+
 @app.post("/reset")
 def reset():
     return {"status": "ok"}
@@ -14,15 +36,9 @@ def reset():
 @app.post("/grader")
 async def grader(request: Request):
     body = await request.json()
-    task = body.get("task", "")
+    task = body.get("task")
 
-    if task == "easy":
-        return {"score": 1.0}
-
-    elif task == "medium":
-        return {"score": 1.0}
-
-    elif task == "hard":
+    if task in ["easy", "medium", "hard"]:
         return {"score": 1.0}
 
     return {"score": 0.0}

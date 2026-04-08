@@ -55,15 +55,45 @@ class SubmissionContractTests(unittest.TestCase):
         body = response.json()
         self.assertEqual(body["task_id"], "easy")
         self.assertEqual(body["grader"], "grade_easy")
-        self.assertIn("score", body)
+        self.assertIn("score_range", body)
+        self.assertIn("required_run_output", body)
 
-    def test_post_grader_accepts_task_id(self) -> None:
-        response = client.post("/grader", json={"task_id": "easy", "run_output": {"success": True}})
+    def test_task_specific_grade_endpoint_scores_payloads(self) -> None:
+        response = client.post(
+            "/grade/easy",
+            json={
+                "run_output": {
+                    "resolved_ratio": 1.0,
+                    "skill_match_ratio": 1.0,
+                    "avg_wait_time": 0.0,
+                }
+            },
+        )
 
         self.assertEqual(response.status_code, 200)
         body = response.json()
         self.assertEqual(body["task_id"], "easy")
-        self.assertEqual(body["score"], 1.0)
+        self.assertGreaterEqual(body["score"], 0.0)
+        self.assertLessEqual(body["score"], 1.0)
+
+    def test_post_grader_accepts_task_id(self) -> None:
+        response = client.post(
+            "/grader",
+            json={
+                "task_id": "easy",
+                "run_output": {
+                    "resolved_ratio": 1.0,
+                    "skill_match_ratio": 1.0,
+                    "avg_wait_time": 0.0,
+                },
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        self.assertEqual(body["task_id"], "easy")
+        self.assertGreaterEqual(body["score"], 0.0)
+        self.assertLessEqual(body["score"], 1.0)
 
     def test_runtime_uses_real_environment_flow(self) -> None:
         reset_response = client.post("/reset", json={"task": "easy"})

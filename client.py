@@ -4,7 +4,10 @@ from openenv.core import EnvClient
 from openenv.core.client_types import StepResult
 from openenv.core.env_server.types import State
 
-from .models import AssistOpsAction, AssistOpsObservation, Helper, Request
+try:
+    from .models import AssistOpsAction, AssistOpsObservation, Helper, Request
+except ImportError:
+    from models import AssistOpsAction, AssistOpsObservation, Helper, Request
 
 
 class AssistOpsEnvClient(EnvClient[AssistOpsAction, AssistOpsObservation, State]):

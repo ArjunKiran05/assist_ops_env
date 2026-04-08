@@ -71,7 +71,13 @@ class SubmissionContractTests(unittest.TestCase):
 
         step_response = client.post(
             "/step",
-            json={"action_type": "assign", "helper_id": "H1", "request_id": "R1"},
+            json={
+                "action": {
+                    "action_type": "assign",
+                    "helper_id": "H1",
+                    "request_id": "R1",
+                }
+            },
         )
 
         self.assertEqual(step_response.status_code, 200)

@@ -1,22 +1,9 @@
+spec_version: 1
 name: assist_ops_env
-version: 1.0.0
-description: >
-  Assist Ops is a community emergency response environment where an agent must
-  assign trusted helpers to incoming requests under time and resource pressure.
-entrypoint: inference.py
-tags:
-  - emergency-response
-  - resource-allocation
-  - real-world
-author: "Arjun Kiran"
-
-endpoints:
-  reset: POST /reset
-  step: POST /step
-  state: GET /state
-  tasks: GET /tasks
-  grader: POST /grader
-  health: GET /health
+type: space
+runtime: fastapi
+app: server.app:app
+port: 7860
 
 tasks:
   - id: easy

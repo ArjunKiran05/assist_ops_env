@@ -40,6 +40,11 @@ class StepResponse(BaseModel):
     info: dict[str, Any] = {}
 
 
+class GradePayload(BaseModel):
+    task_id: str
+    run_output: dict[str, Any] = {}
+
+
 # -----------------------------
 # Root Route
 # -----------------------------
@@ -161,13 +166,27 @@ def grade_task(task_id: str):
 
 
 @app.get("/grader")
-@app.post("/grader")
 def grader(task: Optional[str] = None):
     if task is not None and task not in TASKS_BY_ID:
         raise HTTPException(status_code=404, detail="Unknown task")
 
     score = compute_score(env)
     return {"task": task or getattr(env, "current_task", None), "score": score}
+
+
+@app.post("/grader")
+def grade_submission(payload: GradePayload):
+    if payload.task_id not in TASKS_BY_ID or payload.task_id not in TASK_GRADERS:
+        raise HTTPException(status_code=404, detail="Unknown task")
+
+    if payload.run_output:
+        result = TASK_GRADERS[payload.task_id](payload.run_output)
+        return {"task_id": payload.task_id, **result}
+
+    return {
+        "task_id": payload.task_id,
+        "score": compute_score(env),
+    }
 
 
 @app.get("/validate")

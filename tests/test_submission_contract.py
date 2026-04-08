@@ -57,6 +57,14 @@ class SubmissionContractTests(unittest.TestCase):
         self.assertEqual(body["grader"], "grade_easy")
         self.assertIn("score", body)
 
+    def test_post_grader_accepts_task_id(self) -> None:
+        response = client.post("/grader", json={"task_id": "easy", "run_output": {"success": True}})
+
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        self.assertEqual(body["task_id"], "easy")
+        self.assertEqual(body["score"], 1.0)
+
     def test_runtime_uses_real_environment_flow(self) -> None:
         reset_response = client.post("/reset", json={"task": "easy"})
         self.assertEqual(reset_response.status_code, 200)

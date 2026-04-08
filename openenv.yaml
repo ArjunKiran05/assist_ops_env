@@ -15,7 +15,7 @@ endpoints:
   step: POST /step
   state: GET /state
   tasks: GET /tasks
-  grader: GET /grade/{task_id}
+  grader: POST /grader
   health: GET /health
 
 tasks:

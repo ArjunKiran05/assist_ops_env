@@ -1,12 +1,22 @@
 name: assist_ops_env
 version: 1.0.0
-description: Assist Ops environment for Scaler hackathon
+description: >
+  Assist Ops is a community emergency response environment where an agent must
+  assign trusted helpers to incoming requests under time and resource pressure.
 entrypoint: inference.py
+tags:
+  - emergency-response
+  - resource-allocation
+  - real-world
+author: "Arjun Kiran"
 
 endpoints:
-  reset: /reset
-  tasks: /tasks
-  grader: /grade
+  reset: POST /reset
+  step: POST /step
+  state: GET /state
+  tasks: GET /tasks
+  grader: GET /grade/{task_id}
+  health: GET /health
 
 tasks:
   - id: easy
@@ -25,11 +35,19 @@ tasks:
     description: Handle dynamic incoming requests under sustained time pressure.
     max_steps: 10
 
-grading:
-  score_range: [0.0, 1.0]
-  passing_threshold: 0.3
-  metrics:
-    - success
-    - reward
-    - trust
-    - waiting_time
+action_space:
+  type: structured
+  model: Action
+
+observation_space:
+  type: structured
+  model: Observation
+
+reward_range: [0.0, 1.0]
+episode_termination:
+  - all requests resolved
+  - max_steps reached
+
+docker:
+  port: 7860
+  health_check: GET /health

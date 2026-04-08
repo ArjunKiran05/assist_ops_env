@@ -2,33 +2,17 @@ from typing import Any, Optional
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from grader import GRADERS as TASK_GRADERS
+from graders import GRADERS as TASK_GRADERS
 from env.environment import AssistOpsEnv
 from env.models import Action, Observation
 from env.grader import compute_score
 from fastapi.responses import RedirectResponse
+from tasks import TASKS, TASK_ORDER
 
 app = FastAPI()
 
 # Global environment instance
 env = AssistOpsEnv()
-TASKS = {
-    "easy": {
-        "name": "Basic Emergency Matching",
-        "difficulty": "easy",
-        "description": "Match one helper to one request with direct skill alignment.",
-    },
-    "medium": {
-        "name": "Prioritized Limited-Helper Dispatch",
-        "difficulty": "medium",
-        "description": "Allocate scarce helpers across mixed-priority requests.",
-    },
-    "hard": {
-        "name": "Dynamic Community Assistance",
-        "difficulty": "hard",
-        "description": "Handle dynamic incoming requests under sustained time pressure.",
-    },
-}
 
 
 class ResetPayload(BaseModel):
@@ -143,14 +127,16 @@ def tasks():
     return {
         "tasks": [
             {
-                "id": task_id,
+                "id": task_data["id"],
                 "name": task_data["name"],
                 "difficulty": task_data["difficulty"],
                 "description": task_data["description"],
+                "max_steps": task_data["max_steps"],
                 "grader": task_id in TASK_GRADERS,
                 "grader_endpoint": f"/grade/{task_id}",
             }
-            for task_id, task_data in TASKS.items()
+            for task_id in TASK_ORDER
+            for task_data in [TASKS[task_id]]
         ]
     }
 
@@ -190,4 +176,8 @@ def validate():
         "task_count": len(TASKS),
         "graders_count": len(TASK_GRADERS),
         "tasks_with_graders": tasks_with_graders,
+        "checks": {
+            "min_3_tasks": len(TASKS) >= 3,
+            "all_tasks_have_graders": all(task_id in TASK_GRADERS for task_id in TASKS),
+        },
     }

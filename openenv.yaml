@@ -3,7 +3,7 @@ version: 1.0.0
 description: >
   Assist Ops is a community emergency response environment where an agent must
   assign trusted helpers to incoming requests under time and resource pressure.
-entrypoint: inference.py
+entrypoint: server/app.py
 tags:
   - emergency-response
   - resource-allocation
@@ -24,16 +24,19 @@ tasks:
     difficulty: easy
     description: Match one helper to one request with direct skill alignment.
     max_steps: 10
+    grader: true
   - id: medium
     name: Prioritized Limited-Helper Dispatch
     difficulty: medium
     description: Allocate scarce helpers across mixed-priority requests.
     max_steps: 10
+    grader: true
   - id: hard
     name: Dynamic Community Assistance
     difficulty: hard
     description: Handle dynamic incoming requests under sustained time pressure.
     max_steps: 10
+    grader: true
 
 action_space:
   type: structured

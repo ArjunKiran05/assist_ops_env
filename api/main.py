@@ -132,6 +132,7 @@ def tasks():
                 "difficulty": task_data["difficulty"],
                 "description": task_data["description"],
                 "max_steps": task_data["max_steps"],
+                "grader_fn": task_data["grader_fn"],
                 "reset_params": task_data["reset_params"],
                 "grader": task_id in TASK_GRADERS,
                 "grader_endpoint": f"/grade/{task_id}",

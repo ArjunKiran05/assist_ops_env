@@ -5,6 +5,7 @@ TASKS = [
         "difficulty": "easy",
         "description": "Match one helper to one request with direct skill alignment.",
         "max_steps": 10,
+        "grader_fn": "grade_easy",
         "reset_params": {"task": "easy"},
     },
     {
@@ -13,6 +14,7 @@ TASKS = [
         "difficulty": "medium",
         "description": "Allocate scarce helpers across mixed-priority requests.",
         "max_steps": 10,
+        "grader_fn": "grade_medium",
         "reset_params": {"task": "medium"},
     },
     {
@@ -21,6 +23,7 @@ TASKS = [
         "difficulty": "hard",
         "description": "Handle dynamic incoming requests under sustained time pressure.",
         "max_steps": 10,
+        "grader_fn": "grade_hard",
         "reset_params": {"task": "hard"},
     },
 ]

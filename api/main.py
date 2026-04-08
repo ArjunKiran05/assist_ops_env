@@ -7,7 +7,7 @@ from env.environment import AssistOpsEnv
 from env.models import Action, Observation
 from env.grader import compute_score
 from fastapi.responses import RedirectResponse
-from tasks import TASKS, TASK_ORDER
+from tasks import TASKS, TASKS_BY_ID
 
 app = FastAPI()
 
@@ -54,7 +54,7 @@ def home():
 @app.post("/reset")
 def reset(payload: Optional[ResetPayload] = None, task: Optional[str] = None):
     task_name = task or (payload.task if payload else "easy")
-    if task_name not in TASKS:
+    if task_name not in TASKS_BY_ID:
         raise HTTPException(status_code=404, detail="Unknown task")
 
     obs = env.reset(task_name)
@@ -132,11 +132,12 @@ def tasks():
                 "difficulty": task_data["difficulty"],
                 "description": task_data["description"],
                 "max_steps": task_data["max_steps"],
+                "reset_params": task_data["reset_params"],
                 "grader": task_id in TASK_GRADERS,
                 "grader_endpoint": f"/grade/{task_id}",
             }
-            for task_id in TASK_ORDER
-            for task_data in [TASKS[task_id]]
+            for task_data in TASKS
+            for task_id in [task_data["id"]]
         ]
     }
 
@@ -147,7 +148,7 @@ def tasks():
 @app.get("/grade/{task_id}")
 @app.post("/grade/{task_id}")
 def grade_task(task_id: str):
-    if task_id not in TASKS or task_id not in TASK_GRADERS:
+    if task_id not in TASKS_BY_ID or task_id not in TASK_GRADERS:
         raise HTTPException(status_code=404, detail="Unknown task")
 
     score = compute_score(env)
@@ -161,7 +162,7 @@ def grade_task(task_id: str):
 @app.get("/grader")
 @app.post("/grader")
 def grader(task: Optional[str] = None):
-    if task is not None and task not in TASKS:
+    if task is not None and task not in TASKS_BY_ID:
         raise HTTPException(status_code=404, detail="Unknown task")
 
     score = compute_score(env)
@@ -170,14 +171,15 @@ def grader(task: Optional[str] = None):
 
 @app.get("/validate")
 def validate():
-    tasks_with_graders = [task_id for task_id in TASKS if task_id in TASK_GRADERS]
+    task_ids = [task["id"] for task in TASKS]
+    tasks_with_graders = [task_id for task_id in task_ids if task_id in TASK_GRADERS]
     return {
         "valid": len(tasks_with_graders) >= 3,
-        "task_count": len(TASKS),
+        "task_count": len(task_ids),
         "graders_count": len(TASK_GRADERS),
         "tasks_with_graders": tasks_with_graders,
         "checks": {
-            "min_3_tasks": len(TASKS) >= 3,
-            "all_tasks_have_graders": all(task_id in TASK_GRADERS for task_id in TASKS),
+            "min_3_tasks": len(task_ids) >= 3,
+            "all_tasks_have_graders": all(task_id in TASK_GRADERS for task_id in task_ids),
         },
     }

@@ -25,14 +25,20 @@ class SubmissionContractTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
 
-        tasks = response.json()
+        body = response.json()
+        self.assertIn("tasks", body)
+        tasks = body["tasks"]
         self.assertEqual(len(tasks), 3)
 
         for task in tasks:
+            self.assertIn("id", task)
             self.assertIn("name", task)
+            self.assertIn("difficulty", task)
             self.assertIn("description", task)
             self.assertIn("grader", task)
-            self.assertTrue(task["grader"].startswith("/grader?task="))
+            self.assertTrue(task["grader"])
+            self.assertIn("grader_endpoint", task)
+            self.assertTrue(task["grader_endpoint"].startswith("/grade/"))
 
     def test_grader_supports_task_query(self) -> None:
         response = client.get("/grader", params={"task": "easy"})
@@ -40,6 +46,15 @@ class SubmissionContractTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         body = response.json()
         self.assertEqual(body["task"], "easy")
+        self.assertIn("score", body)
+
+    def test_task_specific_grade_endpoint_exists(self) -> None:
+        response = client.get("/grade/easy")
+
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        self.assertEqual(body["task_id"], "easy")
+        self.assertEqual(body["grader"], "grade_easy")
         self.assertIn("score", body)
 
     def test_runtime_uses_real_environment_flow(self) -> None:
@@ -73,6 +88,15 @@ class SubmissionContractTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertIn("observation", response.json())
+
+    def test_validate_reports_three_tasks_with_graders(self) -> None:
+        response = client.get("/validate")
+
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        self.assertTrue(body["valid"])
+        self.assertEqual(body["task_count"], 3)
+        self.assertEqual(body["graders_count"], 3)
 
 
 if __name__ == "__main__":

@@ -2,6 +2,7 @@ from typing import Any, Optional
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from grader import GRADERS as TASK_GRADERS
 from env.environment import AssistOpsEnv
 from env.models import Action, Observation
 from env.grader import compute_score
@@ -12,9 +13,21 @@ app = FastAPI()
 # Global environment instance
 env = AssistOpsEnv()
 TASKS = {
-    "easy": "Basic matching with equal helpers",
-    "medium": "Limited helpers, prioritization required",
-    "hard": "Dynamic requests with time pressure",
+    "easy": {
+        "name": "Basic Emergency Matching",
+        "difficulty": "easy",
+        "description": "Match one helper to one request with direct skill alignment.",
+    },
+    "medium": {
+        "name": "Prioritized Limited-Helper Dispatch",
+        "difficulty": "medium",
+        "description": "Allocate scarce helpers across mixed-priority requests.",
+    },
+    "hard": {
+        "name": "Dynamic Community Assistance",
+        "difficulty": "hard",
+        "description": "Handle dynamic incoming requests under sustained time pressure.",
+    },
 }
 
 
@@ -127,19 +140,38 @@ def mcp():
 # -----------------------------
 @app.get("/tasks")
 def tasks():
-    return [
-        {
-            "name": task_name,
-            "description": description,
-            "grader": f"/grader?task={task_name}",
-        }
-        for task_name, description in TASKS.items()
-    ]
+    return {
+        "tasks": [
+            {
+                "id": task_id,
+                "name": task_data["name"],
+                "difficulty": task_data["difficulty"],
+                "description": task_data["description"],
+                "grader": task_id in TASK_GRADERS,
+                "grader_endpoint": f"/grade/{task_id}",
+            }
+            for task_id, task_data in TASKS.items()
+        ]
+    }
 
 
 # -----------------------------
 # 5. Grader Endpoint
 # -----------------------------
+@app.get("/grade/{task_id}")
+@app.post("/grade/{task_id}")
+def grade_task(task_id: str):
+    if task_id not in TASKS or task_id not in TASK_GRADERS:
+        raise HTTPException(status_code=404, detail="Unknown task")
+
+    score = compute_score(env)
+    return {
+        "task_id": task_id,
+        "grader": TASK_GRADERS[task_id].__name__,
+        "score": score,
+    }
+
+
 @app.get("/grader")
 @app.post("/grader")
 def grader(task: Optional[str] = None):
@@ -148,3 +180,14 @@ def grader(task: Optional[str] = None):
 
     score = compute_score(env)
     return {"task": task or getattr(env, "current_task", None), "score": score}
+
+
+@app.get("/validate")
+def validate():
+    tasks_with_graders = [task_id for task_id in TASKS if task_id in TASK_GRADERS]
+    return {
+        "valid": len(tasks_with_graders) >= 3,
+        "task_count": len(TASKS),
+        "graders_count": len(TASK_GRADERS),
+        "tasks_with_graders": tasks_with_graders,
+    }

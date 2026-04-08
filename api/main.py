@@ -1,4 +1,6 @@
-from fastapi import FastAPI
+from typing import Optional
+
+from fastapi import FastAPI, HTTPException
 from env.environment import AssistOpsEnv
 from env.models import Action
 from env.grader import compute_score
@@ -8,6 +10,11 @@ app = FastAPI()
 
 # Global environment instance
 env = AssistOpsEnv()
+TASKS = {
+    "easy": "Basic matching with equal helpers",
+    "medium": "Limited helpers, prioritization required",
+    "hard": "Dynamic requests with time pressure",
+}
 
 
 # -----------------------------
@@ -54,20 +61,24 @@ def state():
 # -----------------------------
 @app.get("/tasks")
 def tasks():
-    return {
-        "tasks": ["easy", "medium", "hard"],
-        "description": {
-            "easy": "Basic matching with equal helpers",
-            "medium": "Limited helpers, prioritization required",
-            "hard": "Dynamic requests with time pressure"
+    return [
+        {
+            "name": task_name,
+            "description": description,
+            "grader": f"/grader?task={task_name}",
         }
-    }
+        for task_name, description in TASKS.items()
+    ]
 
 
 # -----------------------------
 # 5. Grader Endpoint
 # -----------------------------
 @app.get("/grader")
-def grader():
+@app.post("/grader")
+def grader(task: Optional[str] = None):
+    if task is not None and task not in TASKS:
+        raise HTTPException(status_code=404, detail="Unknown task")
+
     score = compute_score(env)
-    return {"score": score}
+    return {"task": task or getattr(env, "current_task", None), "score": score}
